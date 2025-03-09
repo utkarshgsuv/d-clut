@@ -1,24 +1,21 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-// import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:web_socket_client/web_socket_client.dart';
 
 class ChatWebService with WidgetsBindingObserver {
   static final _instance = ChatWebService._internal();
-
   factory ChatWebService() => _instance;
 
-  //private constructor
-  ChatWebService._internal(); //this prevents class to be instantiated externally
+  ChatWebService._internal(); // Prevents external instantiation
+
   WebSocket? _socket;
+  Timer? _reconnectTimer; // Timer for auto-reconnect
+  Timer? _pingTimer; // Timer for keep-alive pings
 
-  final _searchResultController = StreamController<
-      Map<String, dynamic>>.broadcast(); //to control the url that is coming
-  final _contentController = StreamController<
-      Map<String, dynamic>>.broadcast(); // to control the content
-
-  //getter function for stream controllers , as we can use them publicly and get values for them , otherwise anyone will control them
+  final _searchResultController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  final _contentController = StreamController<Map<String, dynamic>>.broadcast();
 
   Stream<Map<String, dynamic>> get searchResultStream =>
       _searchResultController.stream;
@@ -27,39 +24,68 @@ class ChatWebService with WidgetsBindingObserver {
 
   void connect() {
     if (_socket != null) return;
-    _socket = WebSocket(
-      Uri.parse("ws://localhost:8000/ws/chat"),
+
+    _socket = WebSocket(Uri.parse("ws://localhost:8000/ws/chat"));
+
+    _socket!.messages.listen(
+      (message) {
+        final data = jsonDecode(message);
+        if (data['type'] == 'search_result') {
+          _searchResultController.add(data);
+        } else if (data['type'] == 'content') {
+          _contentController.add(data);
+        }
+      },
+      onDone: _handleReconnect, // Reconnect if connection closes
+      onError: (error) {
+        print("WebSocket Error: $error");
+        _handleReconnect();
+      },
     );
-    _socket!.messages.listen((message) {
-      final data = jsonDecode(message);
-      if (data['type'] == 'search_result') {
-        _searchResultController.add(data);
-      } else if (data['type'] == 'content') {
-        _contentController.add(data);
-      }
-    });
+
+    _startKeepAlive(); // Start keep-alive pings
   }
 
   void chat(String query) {
-    _socket!.send(
-      jsonEncode(
-        {'query': query},
-      ),
-    );
+    if (_socket != null) {
+      _socket!.send(jsonEncode({'query': query}));
+    } else {
+      print("WebSocket not connected. Reconnecting...");
+      connect();
+    }
   }
 
   void disconnect() {
-    _socket?.close(); // Close WebSocket
-    _socket = null; // Reset instance
-    _searchResultController.add({}); // Clear search results
-    _contentController.add({}); // Clear content
-    print("WebSocket connection closed");
+    _pingTimer?.cancel();
+    _reconnectTimer?.cancel();
+    _socket?.close();
+    _socket = null;
+
+    _searchResultController.add({});
+    _contentController.add({});
+
+    print("WebSocket connection closed and streams cleared");
+  }
+
+  void _handleReconnect() {
+    print("WebSocket disconnected. Attempting to reconnect in 5 seconds...");
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer(Duration(seconds: 5), connect);
+  }
+
+  void _startKeepAlive() {
+    _pingTimer?.cancel();
+    _pingTimer = Timer.periodic(Duration(seconds: 30), (_) {
+      if (_socket != null) {
+        _socket!.send(jsonEncode({'type': 'ping'})); // Keep WebSocket active
+      }
+    });
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.detached) {
-      disconnect(); // Close WebSocket when app is minimized or closed
+      disconnect();
     }
   }
 }
