@@ -13,7 +13,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change * to your frontend URL for better security
+    allow_origins=["*"],  # will Change * to my frontend URL for better security 
     allow_credentials=True,
     allow_methods=["*"],  # Allow POST, GET, OPTIONS, etc.
     allow_headers=["*"],
@@ -27,43 +27,43 @@ transcript_service = YTTranscript()
 video_summary = AskLLM()
 
 
-# Dictionary to store chat history per WebSocket connection
+
 chat_histories = {}
 
 @app.websocket("/ws/chat")
 async def websocket_chat_endpoint(websocket: WebSocket):
     await websocket.accept()
     
-    session_id = id(websocket)  # Unique session ID
-    chat_histories[session_id] = []  # Initialize chat history for this session
+    session_id = id(websocket)  
+    chat_histories[session_id] = [] 
 
     try:
-        while True:  # Keep listening for messages
-            data = await websocket.receive_json()  # Receive JSON data
-            validated_data = ChatBody(**data)  # Validate with Pydantic
-            query = validated_data.query  # Extract query
+        while True: 
+            data = await websocket.receive_json()  
+            validated_data = ChatBody(**data)  
+            query = validated_data.query 
 
-            # Append user's query to chat history
+          
             chat_histories[session_id].append({"role": "user", "content": query})
 
-            # Search the web for sources
+            
             search_results = search_service.web_search(query)
             sorted_results = sort_web_service.sort_sources(query, search_results)
 
-            # Send search results to frontend
+           
             await websocket.send_json({"type": "search_result", "data": sorted_results})
 
             response_text = ""
             
-            # Generate response using LLM with full conversation history
+            
             for chunk in llm_service.generate_response(chat_histories[session_id], sorted_results):
-                print(chunk)
+                # print(chunk)
                 response_text += chunk
                 await websocket.send_json({"type": "content", "data": chunk})
 
-            # Append AI's response to chat history
+            
             chat_histories[session_id].append({"role": "assistant", "content": response_text})
-            print(chat_histories)
+            # print(chat_histories)
 
     except Exception as e:
         print("Unexpected Error:", e)
@@ -82,19 +82,19 @@ def yt_endpoint(body: ChatBody) :
         print('post connection started')
         #step - 1 get the video id
         video_id = id_service.get_video_id(body.query)
-        print(video_id , 'video id')
+        # print(video_id , 'video id')
         
         #step - 2 pass this video id to getTranscript function
         if(video_id != "VIDEO_ID_NOT_FOUND"):
             full_text = transcript_service.extract_transcript(video_id)
-            print('transcripts' , full_text )
+            # print('transcripts' , full_text )
         else:
              full_text = transcript_service.extract_transcript("The user didn't provide the correct youtube video , pls ask him to provide correct url and start again")
 
         
         #step 3 passing the transcripts to llm model
         response = video_summary.summarise_video(full_text)
-        print(response)
+        # print(response)
         return {"summary": response}
         
         

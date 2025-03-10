@@ -14,15 +14,15 @@ class LLMService:
         """
         
         # Step 1: Optimize Web Search Context
-        context_text_list = [f"({i+1}) {res.get('url')}: {res['content']}..."  # Truncate content for speed
-                             for i, res in enumerate(sorted_results[:6])]  # Use only top 6 sources
+        context_text_list = [f"({i+1}) {res.get('url')}: {res['content']}..."  
+                             for i, res in enumerate(sorted_results[:6])] 
         context_text = "\n\n".join(context_text_list)
 
-        # Step 2: Use only the last 2-3 messages for chat history
+        # Step 2: Using  the last 2-3 messages for chat history
         history_text = "\n\n".join(f"**{msg['role'].capitalize()}**: {msg['content']}" 
                                    for msg in chat_history[-3:])  
 
-        # Step 3: Construct the prompt
+       
         full_prompt = f"""
 ### Web Search Context  
 {context_text}

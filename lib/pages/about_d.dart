@@ -43,7 +43,7 @@ class AboutD extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Title
+                   
                     ShaderMask(
                       shaderCallback: (bounds) => LinearGradient(
                         colors: [Colors.pink, AppColors.submitButton],
@@ -69,11 +69,11 @@ class AboutD extends StatelessWidget {
 
                     SizedBox(height: isMobile ? 10 : 20),
 
-                    // Description using RichText
+                    
 
                     SizedBox(height: isMobile ? 15 : 30),
 
-                    // Features Section (Fixing Overflow)
+                   
                     Wrap(
                       spacing: 10,
                       runSpacing: 10,
@@ -146,7 +146,7 @@ class AboutD extends StatelessWidget {
                                 " is here to declutter your search experience and save you time.\n\n",
                           ),
 
-                          // Closing Statement
+                          
                           TextSpan(
                             text: "Stop searching. Stop scrolling.\n",
                             style: TextStyle(

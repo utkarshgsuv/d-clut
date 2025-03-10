@@ -76,7 +76,7 @@ For the latest scores, match updates, and expert analysis, visit **Cricket Centr
   Future<String> getSummary() async {
     try {
       final res = Uri.parse("http://localhost:8000/summarise");
-      print("Sending request to: $res");
+     
       final response = await http.post(
         res,
         headers: {"Content-Type": "application/json"},
@@ -92,14 +92,14 @@ For the latest scores, match updates, and expert analysis, visit **Cricket Centr
         throw 'Error: ${response.statusCode} - ${response.body}';
       }
     } catch (e) {
-      print("Exception: ${e.toString()}"); // Debugging line
+     
       throw 'Exception: ${e.toString()}';
     }
   }
 
   @override
   void initState() {
-    // TODO: implement initState
+    
     super.initState();
     summaryFuture = getSummary();
   }

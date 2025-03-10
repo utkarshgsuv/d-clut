@@ -22,7 +22,7 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController followUpController = TextEditingController();
   @override
   void dispose() {
-    // TODO: implement dispose
+    
     super.dispose();
     followUpController.dispose();
   }

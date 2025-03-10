@@ -9,14 +9,14 @@ class HomeFloatingButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      left: MediaQuery.of(context).size.width * 0.015, // Stick to the left
-      top: MediaQuery.of(context).size.height * 0.875, // Center vertically
+      left: MediaQuery.of(context).size.width * 0.015, 
+      top: MediaQuery.of(context).size.height * 0.875, 
       child: GestureDetector(
         onTap: () {
           ChatWebService().disconnect();
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => AboutD(), // Navigate to About Section
+              builder: (context) => AboutD(), 
             ),
           );
         },
@@ -32,7 +32,7 @@ class HomeFloatingButton extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              color: AppColors.submitButton, // Change color if needed
+              color: AppColors.submitButton, 
               borderRadius: BorderRadius.circular(50)),
           child: Icon(
             Icons.home,
